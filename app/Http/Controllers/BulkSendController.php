@@ -11,14 +11,22 @@ use Illuminate\Http\Request;
 
 class BulkSendController extends Controller
 {
-    public function BulkSendFile(Request $request): JsonResponse
+    public function BulkSendFile(Request $request)//: JsonResponse
     {
+        // create validate
+        $request->validate([
+            'sender' => 'required|string|exists:apps,sender_block',
+            'message' => 'required|string',
+            'file' => 'required|file',
+            'messages_per_device' => 'optional|integer|default:10',
+        ]);
+
         $getApp = App::userApps($request->sender);
         $appLimit = $request->input('device_limit', $getApp->count());
         $getApp = $getApp->take($appLimit);
 
         $numbers = Number::select('number')->where('is_active', true)
-            ->where('slug', $request->receiver_block)
+            ->where('slug', $request->sender)
             ->get();
 
         $message = $request->input('message');
